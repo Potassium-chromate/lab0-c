@@ -72,10 +72,8 @@ temp_file=$(mktemp)
 curl -sSL -o "$temp_file" "$COMMITS_URL"
 
 # general grep pattern that finds commit links
-upstream_hash=$(
-  grep -Po 'href="[^"]*/commit/\K[0-9a-f]{40}' "$temp_file" \
-  | head -n 1
-)
+upstream_hash=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${DEFAULT_BRANCH}" \
+  | grep '"sha":' | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
 
 rm -f "$temp_file"
 
