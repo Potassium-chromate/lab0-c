@@ -57,7 +57,7 @@ bool q_insert_head(struct list_head *head, char *s)
 bool q_insert_tail(struct list_head *head, char *s)
 {
     if (head)
-        return q_insert_head(head, s);
+        return q_insert_head(head->prev, s);
     return false;
 }
 
@@ -81,7 +81,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
     if (head)
-        return q_remove_head(head, sp, bufsize);
+        return q_remove_head(head->prev, sp, bufsize);
     return NULL;
 }
 
