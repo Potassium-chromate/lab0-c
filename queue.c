@@ -213,8 +213,84 @@ void q_reverseK(struct list_head *head, int k)
     list_splice_init(&new_head, head);
 }
 
-/* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+// Merges two sorted lists into one sorted list
+struct list_head *merge(struct list_head *l1,
+                        struct list_head *l2,
+                        bool descend)
+{
+    // merge with recursive
+    if (!l2) {
+        return l1;
+    }
+    if (!l1) {
+        return l2;
+    }
+    element_t *node1 = list_entry(l1, element_t, list);
+    element_t *node2 = list_entry(l2, element_t, list);
+    if (descend) {
+        if (strcmp(node1->value, node2->value) < 0) {
+            l2->next = merge(l1, l2->next, descend);
+            return l2;
+        } else {
+            l1->next = merge(l1->next, l2, descend);
+            return l1;
+        }
+    } else {
+        if (strcmp(node1->value, node2->value) <= 0) {
+            l1->next = merge(l1->next, l2, descend);
+            return l1;
+        } else {
+            l2->next = merge(l1, l2->next, descend);
+            return l2;
+        }
+    }
+}
+
+struct list_head *mergeSortList(struct list_head *head, bool descend)
+{
+    if (!head || !head->next)
+        return head;
+
+    struct list_head *fast = head->next;
+    struct list_head *slow = head;
+    // split list
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    fast = slow->next;
+    slow->next = NULL;
+
+
+    // sort each list
+    struct list_head *l1 = mergeSortList(head, descend);
+    struct list_head *l2 = mergeSortList(fast, descend);
+    // merge sorted l1 and sorted l2
+    return merge(l1, l2, descend);
+}
+
+
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head *temp = head;
+    head->prev->next = NULL;
+    head->next = mergeSortList(head->next, descend);
+
+    struct list_head *curr = head->next;
+
+    while (curr->next != NULL) {
+        curr->prev = temp;
+        temp = curr;
+        curr = curr->next;
+    }
+    curr->prev = temp;
+    curr->next = head;
+    head->prev = curr;
+
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
