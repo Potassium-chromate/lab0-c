@@ -599,7 +599,7 @@ bool do_sort(int argc, char *argv[])
 /* If the number of elements is too large, it may take a long time to check the
  * stability of the sort. So, MAX_NODES is used to limit the number of elements
  * to check the stability of the sort. */
-#define MAX_NODES 100000
+#define MAX_NODES 200000
     struct list_head *nodes[MAX_NODES];
     unsigned no = 0;
     if (current && current->size && current->size <= MAX_NODES) {
@@ -611,7 +611,6 @@ bool do_sort(int argc, char *argv[])
                "Warning: Skip checking the stability of the sort because the "
                "number of elements %d is too large, exceeds the limit %d.",
                current->size, MAX_NODES);
-
     if (current && exception_setup(true))
         q_sort(current->q, descend);
     exception_cancel();

@@ -274,7 +274,6 @@ void q_sort(struct list_head *head, bool descend)
 {
     if (!head || list_empty(head) || list_is_singular(head))
         return;
-
     struct list_head *temp = head;
     head->prev->next = NULL;
     head->next = mergeSortList(head->next, descend);
@@ -289,7 +288,6 @@ void q_sort(struct list_head *head, bool descend)
     curr->prev = temp;
     curr->next = head;
     head->prev = curr;
-
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
