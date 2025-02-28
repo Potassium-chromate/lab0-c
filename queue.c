@@ -218,32 +218,37 @@ struct list_head *merge(struct list_head *l1,
                         struct list_head *l2,
                         bool descend)
 {
-    // merge with recursive
-    if (!l2) {
+    if (!l2)
         return l1;
-    }
-    if (!l1) {
+    if (!l1)
         return l2;
-    }
-    element_t *node1 = list_entry(l1, element_t, list);
-    element_t *node2 = list_entry(l2, element_t, list);
-    if (descend) {
-        if (strcmp(node1->value, node2->value) < 0) {
-            l2->next = merge(l1, l2->next, descend);
-            return l2;
+
+    struct list_head dummy;
+    struct list_head *temp = &dummy;
+    dummy.next = NULL;
+    dummy.prev = NULL;
+
+    while (l1 && l2) {
+        element_t *node1 = list_entry(l1, element_t, list);
+        element_t *node2 = list_entry(l2, element_t, list);
+
+        if ((strcmp(node1->value, node2->value) <= 0) ^ descend) {
+            temp->next = l1;
+            temp = temp->next;
+            l1 = l1->next;
         } else {
-            l1->next = merge(l1->next, l2, descend);
-            return l1;
-        }
-    } else {
-        if (strcmp(node1->value, node2->value) <= 0) {
-            l1->next = merge(l1->next, l2, descend);
-            return l1;
-        } else {
-            l2->next = merge(l1, l2->next, descend);
-            return l2;
+            temp->next = l2;
+            temp = temp->next;
+            l2 = l2->next;
         }
     }
+
+    if (l1)
+        temp->next = l1;
+    if (l2)
+        temp->next = l2;
+
+    return dummy.next;
 }
 
 struct list_head *mergeSortList(struct list_head *head, bool descend)
@@ -274,6 +279,7 @@ void q_sort(struct list_head *head, bool descend)
 {
     if (!head || list_empty(head) || list_is_singular(head))
         return;
+    // break the doubly linked structure
     struct list_head *temp = head;
     head->prev->next = NULL;
     head->next = mergeSortList(head->next, descend);
