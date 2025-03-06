@@ -173,7 +173,7 @@ void q_reverse(struct list_head *head)
     list_for_each_safe(cur, tmp, head) {
         struct list_head *swap_node = cur->next;
         cur->next = cur->prev;
-        cur->prev = swap;
+        cur->prev = swap_node;
     }
 
     struct list_head *swap_node = head->next;
