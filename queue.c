@@ -21,7 +21,7 @@ void q_free(struct list_head *head)
     if (!head)
         return;
     struct list_head *node, *safe;
-    list_for_each_safe (node, safe, head) {
+    list_for_each_safe(node, safe, head) {
         element_t *free_node = list_entry(node, element_t, list);
         free(free_node->value);
         free(free_node);
@@ -88,7 +88,7 @@ int q_size(struct list_head *head)
     int len = 0;
     struct list_head *li;
 
-    list_for_each (li, head)
+    list_for_each(li, head)
         len++;
     return len;
 }
@@ -120,7 +120,7 @@ bool q_delete_dup(struct list_head *head)
     struct list_head *node, *safe;
     bool dup = false;
     element_t *tmp;
-    list_for_each_safe (node, safe, head) {
+    list_for_each_safe(node, safe, head) {
         element_t *cur = list_entry(node, element_t, list);
         if (safe != head) {
             tmp = list_entry(safe, element_t, list);
@@ -170,15 +170,15 @@ void q_reverse(struct list_head *head)
     }
 
     struct list_head *cur, *tmp;
-    list_for_each_safe (cur, tmp, head) {
-        struct list_head *swap = cur->next;
+    list_for_each_safe(cur, tmp, head) {
+        struct list_head *swap_node = cur->next;
         cur->next = cur->prev;
         cur->prev = swap;
     }
 
-    struct list_head *swap = head->next;
+    struct list_head *swap_node = head->next;
     head->next = head->prev;
-    head->prev = swap;
+    head->prev = swap_node;
 }
 
 /* Reverse the nodes of the list k at a time */
@@ -195,7 +195,7 @@ void q_reverseK(struct list_head *head, int k)
 
     for (int i = 0; i < times; i++) {
         int j = 0;
-        list_for_each (tail, head) {
+        list_for_each(tail, head) {
             if (j >= k)
                 break;
             j++;
@@ -380,4 +380,32 @@ int q_merge(struct list_head *head, bool descend)
     node->q->prev = curr;
 
     return q_size(node->q);
+}
+
+static void swap(struct list_head *a, struct list_head *b)
+{
+    element_t *a_entry = list_entry(a, element_t, list);
+    element_t *b_entry = list_entry(b, element_t, list);
+    char *tmp = b_entry->value;
+    b_entry->value = a_entry->value;
+    a_entry->value = tmp;
+}
+
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    int size = q_size(head);
+    struct list_head *new = head->prev;
+    for (int i = size - 1; i > 0; i--) {
+        struct list_head *old = head->next;
+        int r = rand() % (i + 1);
+        while (r > 0) {
+            old = old->next;
+            r--;
+        }
+        swap(old, new);
+        new = new->prev;
+    }
 }
