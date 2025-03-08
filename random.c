@@ -79,6 +79,8 @@
 #endif
 #endif
 
+static uint64_t xorshift_state = 58200190121525492ULL;
+
 #if (defined(__linux__) || defined(__GNU__)) && \
     (defined(USE_GLIBC) || defined(SYS_getrandom))
 #if defined(USE_GLIBC)
@@ -271,6 +273,24 @@ static int bsd_randombytes(void *buf, size_t n)
 #endif
 }
 #endif
+
+uint64_t xorshift64(void)
+{
+    xorshift_state ^= xorshift_state << 11;
+    xorshift_state ^= xorshift_state >> 15;
+    xorshift_state ^= xorshift_state << 7;
+    xorshift_state ^= xorshift_state >> 31;
+    xorshift_state ^= xorshift_state << 23;
+    return xorshift_state;
+}
+
+int randombytes_xor(uint8_t *buf, size_t n)
+{
+    for (size_t i = 0; i < n; i++)
+        buf[i] = (uint8_t) (xorshift64() & 0xFF);
+
+    return 0;
+}
 
 int randombytes(uint8_t *buf, size_t n)
 {

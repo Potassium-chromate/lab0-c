@@ -166,14 +166,22 @@ static bool do_new(int argc, char *argv[])
 /* TODO: Add a buf_size check of if the buf_size may be less
  * than MIN_RANDSTR_LEN.
  */
-static void fill_rand_string(char *buf, size_t buf_size)
+static void fill_rand_string(char *buf, size_t buf_size, int rand_mode)
 {
     size_t len = 0;
     while (len < MIN_RANDSTR_LEN)
         len = rand() % buf_size;
 
     uint64_t randstr_buf_64[MAX_RANDSTR_LEN] = {0};
-    randombytes((uint8_t *) randstr_buf_64, len * sizeof(uint64_t));
+    if (rand_mode == 1)
+        randombytes((uint8_t *) randstr_buf_64, len * sizeof(uint64_t));
+    else if (rand_mode == 2)
+        randombytes_xor((uint8_t *) randstr_buf_64, len * sizeof(uint64_t));
+    else {
+        perror("The rand_mode is not correct!\n");
+        return;
+    }
+
     for (size_t n = 0; n < len; n++)
         buf[n] = charset[randstr_buf_64[n] % (sizeof(charset) - 1)];
 
@@ -202,7 +210,8 @@ static bool queue_insert(position_t pos, int argc, char *argv[])
     char *lasts = NULL;
     char randstr_buf[MAX_RANDSTR_LEN];
     int reps = 1;
-    bool ok = true, need_rand = false;
+    bool ok = true;
+    int rand_mode = 0;
     if (argc != 2 && argc != 3) {
         report(1, "%s needs 1-2 arguments", argv[0]);
         return false;
@@ -217,7 +226,10 @@ static bool queue_insert(position_t pos, int argc, char *argv[])
     }
 
     if (!strcmp(inserts, "RAND")) {
-        need_rand = true;
+        rand_mode = 1;
+        inserts = randstr_buf;
+    } else if (!strcmp(inserts, "RAND_XOR")) {
+        rand_mode = 2;
         inserts = randstr_buf;
     }
 
@@ -228,8 +240,8 @@ static bool queue_insert(position_t pos, int argc, char *argv[])
 
     if (current && exception_setup(true)) {
         for (int r = 0; ok && r < reps; r++) {
-            if (need_rand)
-                fill_rand_string(randstr_buf, sizeof(randstr_buf));
+            if (rand_mode)
+                fill_rand_string(randstr_buf, sizeof(randstr_buf), rand_mode);
             bool rval = pos == POS_TAIL ? q_insert_tail(current->q, inserts)
                                         : q_insert_head(current->q, inserts);
             if (rval) {
