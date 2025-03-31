@@ -409,3 +409,43 @@ void q_shuffle(struct list_head *head)
         new = new->prev;
     }
 }
+
+static void AUX_list_quicksort(struct list_head *head)
+{
+    struct list_head list_less, list_greater;
+    element_t *pivot;
+    element_t *item = NULL, *is = NULL;
+
+    if (list_empty(head) || list_is_singular(head))
+        return;
+
+    INIT_LIST_HEAD(&list_less);
+    INIT_LIST_HEAD(&list_greater);
+
+    pivot = list_first_entry(head, element_t, list);  // AAAA
+    list_del(&pivot->list);                           // BBBB
+
+    list_for_each_entry_safe(item, is, head, list) {
+        if (strcmp(item->value, pivot->value) < 0)
+            list_move_tail(&item->list, &list_less);
+        else
+            list_move_tail(&item->list, &list_greater);  // CCCC
+    }
+
+    AUX_list_quicksort(&list_less);
+    AUX_list_quicksort(&list_greater);
+
+    list_add(&pivot->list, head);           // DDDD
+    list_splice(&list_less, head);          // EEEE
+    list_splice_tail(&list_greater, head);  // FFFF
+}
+
+void q_quicksort(struct list_head *head)
+{
+    // Remove the head from list
+    struct list_head *body = head->next;
+    list_del(head);
+    AUX_list_quicksort(body);
+    // Insert the head back to the list
+    list_add(head, body);
+}

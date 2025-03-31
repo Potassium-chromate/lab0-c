@@ -85,7 +85,8 @@ typedef enum {
 } position_t;
 /* Forward declarations */
 static bool q_show(int vlevel);
-
+void q_shuffle(struct list_head *head);
+void q_quicksort(struct list_head *head);
 static bool do_free(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -1067,7 +1068,33 @@ static bool do_next(int argc, char *argv[])
     return q_show(0);
 }
 
-void q_shuffle(struct list_head *head);
+bool do_quicksort(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    int cnt = 0;
+    if (!current || !current->q)
+        report(3, "Warning: Calling sort on null queue");
+    else
+        cnt = q_size(current->q);
+    error_check();
+
+    if (cnt < 2)
+        report(3, "Warning: Calling sort on single node");
+    error_check();
+
+    set_noallocate_mode(true);
+    q_quicksort(current->q);
+    exception_cancel();
+    set_noallocate_mode(false);
+    q_show(3);
+    return !error_check();
+}
+
+
 static bool do_shuffle(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -1098,6 +1125,7 @@ static void console_init()
     ADD_COMMAND(free, "Delete queue", "");
     ADD_COMMAND(prev, "Switch to previous queue", "");
     ADD_COMMAND(next, "Switch to next queue", "");
+    ADD_COMMAND(quicksort, "Do the quicksort for the list", "");
     ADD_COMMAND(ih,
                 "Insert string str at head of queue n times. Generate random "
                 "string(s) if str equals RAND. (default: n == 1)",
